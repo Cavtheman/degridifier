@@ -1,0 +1,3 @@
+#https://www.kassoon.com/dnd/battle-maps/
+#https://dnd.wizards.com/articles/features/schley-stack
+http://archive.wizards.com/default.asp?x=dnd/mwa/archiveall
