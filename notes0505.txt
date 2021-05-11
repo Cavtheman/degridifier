@@ -1,0 +1,20 @@
+tag udklip af af billederne for at kunne bruge samme størrelse
+brug partial som som fuldt grid
+så længe der er
+forskel på skala kunne være et problem, men prøv at se
+laver kun enkelt forward i loopet
+i udklip af validering, ignorer kanter der ikke passer med udklip
+
+ups, laver ikke concats i old ipynb
+
+start med at klippe dele af billeder ud, så man kan beholde samme størrelse, og laver batches
+
+klip på samme måde i validation hver gang, sæt evt seed, men pas på ikke at gøre det med training
+
+Potentielt noget mere at skrive om hvis du laver simpel gridifier
+
+potentielt interessant hvis vi starter med unet, og så bagefter ser hvordan
+
+snak evt om billeder med fliser i rapporten
+
+glemte at kalde backwards i notebook

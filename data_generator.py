@@ -4,21 +4,39 @@ from torch.utils import data
 import torchvision.transforms.functional as TF
 from torchvision.transforms import ToTensor
 import random
+from os import walk
 
 from gridifier import *
 
 from PIL import Image
 
+# Characterizes a dataset for PyTorch
+# Takes a bunch of arguments for data augmentation as well
 class Dataset(data.Dataset):
-    # Characterizes a dataset for PyTorch
-    # Takes a bunch of arguments for data augmentation as well
-    def __init__(self, list_IDs, label_path, grid_size, grid_intensity, grid_offset_x, grid_offset_y, hflip=None, vflip=None, angle=0, shear=0, brightness=1, pad=(0,0,0,0), contrast=1, use_channel=None):
-        self.list_IDs = list_IDs
-        self.label_path = label_path
+
+    # Lists all files in the directory, including those in folders
+    def __get_all_files__(self, path):
+        if not path[-1] == "/":
+            path = path+"/"
+
+        (_, sub_folders, filenames) = next(walk(path))
+        filenames = [ path + elem for elem in filenames ]
+
+        if sub_folders:
+            sub_filenames = [ self.get_all_files (path + elem) for elem in sub_folders ]
+            sub_filenames = [ item for sublist in sub_filenames for item in sublist ]
+            filenames.extend (sub_filenames)
+
+        return filenames
+
+    def __init__(self, max_imgs, base_path, grid_size, grid_intensity, grid_offset_x, grid_offset_y, crop=None, hflip=None, vflip=None, angle=0, shear=0, brightness=1, pad=(0,0,0,0), contrast=1, use_channel=None):
+
+        self.data_paths = self.__get_all_files__(base_path)[:max_imgs]
         self.grid_size = grid_size
         self.grid_intensity = grid_intensity
         self.grid_offset_x = grid_offset_x
         self.grid_offset_y = grid_offset_y
+        self.crop = crop
         self.hflip = hflip
         self.vflip = vflip
         self.angle = angle
@@ -28,7 +46,7 @@ class Dataset(data.Dataset):
         self.contrast = contrast
         self.use_channel = use_channel
 
-    def __augment_data__(self, labels, grid_size, grid_intensity, grid_offset_x, grid_offset_y, hflip, vflip, angle, shear, brightness, pad, contrast, use_channel):
+    def __augment_data__(self, labels, grid_size, grid_intensity, grid_offset_x, grid_offset_y, crop, hflip, vflip, angle, shear, brightness, pad, contrast, use_channel):
 
         grid_size = random.randint(grid_size[0], grid_size[1])
         grid_intensity = random.uniform(grid_intensity[0], grid_intensity[1])
@@ -36,6 +54,13 @@ class Dataset(data.Dataset):
         grid_offset_y = random.randint(grid_offset_y[0], grid_offset_y[1])
 
         data = Image.fromarray(np.uint8(gridify(labels, grid_size, grid_intensity, grid_offset_x, grid_offset_y) * 255))
+
+        if crop != (0,0):
+            w, h = data.size
+            print(w,h)
+            top = random.randint(0,w-crop[0])
+            left = random.randint(0,h-crop[1])
+            print(top,left)
 
         # Flipping the image horizontally
         if hflip and random.random() > hflip:
@@ -74,20 +99,18 @@ class Dataset(data.Dataset):
         if use_channel:
             data = torch.narrow(data, 0, use_channel, 1)
 
+
         return data, labels
 
 
     def __len__(self):
-        return len(self.list_IDs)
+        return len(self.data_paths)
 
     def __getitem__(self, index):
         # Generates one sample of data
-        ID = self.list_IDs[index]
-
-        # Load data and get label
-        labels = Image.open(self.label_path.format(ID))
+        temp = Image.open (self.data_paths[index])
 
         # Augment the data and labels randomly using given arguments
-        data, labels = self.__augment_data__(labels, self.grid_size, self.grid_intensity, self.grid_offset_x, self.grid_offset_y, self.hflip, self.vflip, self.angle, self.shear, self.brightness, self.pad, self.contrast, self.use_channel)
-
+        data, labels = self.__augment_data__(temp, self.grid_size, self.grid_intensity, self.grid_offset_x, self.grid_offset_y, self.crop, self.hflip, self.vflip, self.angle, self.shear, self.brightness, self.pad, self.contrast, self.use_channel)
+        temp.close()
         return data, labels
