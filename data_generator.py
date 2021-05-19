@@ -53,14 +53,15 @@ class Dataset(data.Dataset):
         grid_offset_x = random.randint(grid_offset_x[0], grid_offset_x[1])
         grid_offset_y = random.randint(grid_offset_y[0], grid_offset_y[1])
 
-        data = Image.fromarray(np.uint8(gridify(labels, grid_size, grid_intensity, grid_offset_x, grid_offset_y) * 255))
-
+        # Cropping
         if crop != (0,0):
-            w, h = data.size
-            print(w,h)
+            w, h = labels.size
             top = random.randint(0,w-crop[0])
             left = random.randint(0,h-crop[1])
-            print(top,left)
+            labels = TF.crop (labels, top, left, crop[0], crop[1])
+
+        # Gridifying
+        data = Image.fromarray(np.uint8(gridify(labels, grid_size, grid_intensity, grid_offset_x, grid_offset_y) * 255))
 
         # Flipping the image horizontally
         if hflip and random.random() > hflip:
@@ -88,7 +89,10 @@ class Dataset(data.Dataset):
             contrast = random.uniform(contrast[0], contrast[1])
 
         data = TF.adjust_contrast(data, contrast)
+        labels = TF.adjust_contrast(labels, contrast)
+
         data = TF.adjust_brightness(data, brightness)
+        labels = TF.adjust_brightness(labels, brightness)
 
         data = TF.affine(data, angle, (0,0), 1, shear)
         labels = TF.affine(labels, angle, (0,0), 1, shear)
@@ -108,7 +112,7 @@ class Dataset(data.Dataset):
 
     def __getitem__(self, index):
         # Generates one sample of data
-        temp = Image.open (self.data_paths[index])
+        temp = Image.open (self.data_paths[index]).convert("RGB")
 
         # Augment the data and labels randomly using given arguments
         data, labels = self.__augment_data__(temp, self.grid_size, self.grid_intensity, self.grid_offset_x, self.grid_offset_y, self.crop, self.hflip, self.vflip, self.angle, self.shear, self.brightness, self.pad, self.contrast, self.use_channel)

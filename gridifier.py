@@ -32,6 +32,7 @@ def gridify (img, grid_size, intensity, offset_x=0, offset_y=0):
 
     img = np.asarray(img)
     grid_pixel = [intensity] * img.shape[2]
+
     no_vert = np.array([ grid_pixel if (x + offset_x) % grid_size == 0 else [0,0,0] for x in range(img.shape[1]) ])
     vertical = np.array(([grid_pixel] * img.shape[1]))
     grid = np.array([ vertical if (y + offset_y) % grid_size == 0 else no_vert for y in range(img.shape[0]) ])
@@ -42,5 +43,4 @@ def gridify (img, grid_size, intensity, offset_x=0, offset_y=0):
     overunderflow_img = img + grid
     norm_img = np.where(overunderflow_img > 1, 1, overunderflow_img)
     norm_img = np.where(norm_img < 0, 0, norm_img)
-
     return norm_img
