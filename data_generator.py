@@ -45,12 +45,12 @@ class Dataset(data.Dataset):
         self.pad = pad
         self.contrast = contrast
         self.use_channel = use_channel
-        self.seed = seed
 
+        if seed:
+            random.seed(seed)
     def __augment_data__(self, labels, grid_size, grid_intensity, grid_offset_x, grid_offset_y, crop, hflip, vflip, angle, shear, brightness, pad, contrast, use_channel):
 
-        if self.seed:
-            random.seed(self.seed)
+
         grid_size = random.randint(grid_size[0], grid_size[1])
         grid_intensity = random.uniform(grid_intensity[0], grid_intensity[1])
         grid_offset_x = random.randint(grid_offset_x[0], grid_offset_x[1])
@@ -105,7 +105,6 @@ class Dataset(data.Dataset):
 
         if use_channel:
             data = torch.narrow(data, 0, use_channel, 1)
-
 
         return data, labels
 
