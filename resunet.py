@@ -22,74 +22,87 @@ class ResUnet(nn.Module):
         self.drop = Dropout (dropout)
 
         self.res_1 = Conv2d (in_channels, depth[0], (1,1))
-        self.res_2 = Conv2d (depth[0], depth[1], (1,1), stride=2)
-        self.res_3 = Conv2d (depth[1], depth[2], (1,1), stride=2)
-        self.res_4 = Conv2d (depth[2], depth[3], (1,1), stride=2)
+        self.res_2 = nn.Sequential (
+            Conv2d (depth[0], depth[1], (1,1), stride=2),
+            nn.BatchNorm2d (depth[1])
+        )
+        self.res_3 = nn.Sequential (
+            Conv2d (depth[1], depth[2], (1,1), stride=2),
+            nn.BatchNorm2d (depth[2])
+        )
+        self.res_4 = nn.Sequential (
+            Conv2d (depth[2], depth[3], (1,1), stride=2),
+            nn.BatchNorm2d (depth[3])
+        )
 
-        self.res_5 = Conv2d (depth[3]+depth[2], depth[2], (1,1))
-        self.res_6 = Conv2d (depth[2]+depth[1], depth[1], (1,1))
-        self.res_7 = Conv2d (depth[1]+depth[0], depth[0], (1,1))
+        self.res_5 = nn.Sequential (
+            Conv2d (depth[3]+depth[2], depth[2], (1,1)),
+            nn.BatchNorm2d (depth[2])
+        )
+        self.res_6 = nn.Sequential (
+            Conv2d (depth[2]+depth[1], depth[1], (1,1)),
+            nn.BatchNorm2d (depth[1])
+        )
+        self.res_7 = nn.Sequential (
+            Conv2d (depth[1]+depth[0], depth[0], (1,1)),
+            nn.BatchNorm2d (depth[0])
+        )
 
         self.down_layer_1 = nn.Sequential(
             Conv2d (in_channels, depth[0], (3,3), padding=(1,1), padding_mode="reflect"),
             nn.BatchNorm2d (depth[0]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[0], depth[0], (3,3), padding=(1,1), padding_mode="reflect")
         )
         self.down_layer_2 = nn.Sequential(
             nn.BatchNorm2d (depth[0]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[0], depth[1], (3,3), stride=2, padding=(1,1), padding_mode="reflect"),
             nn.BatchNorm2d (depth[1]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[1], depth[1], (3,3), padding=(1,1), padding_mode="reflect")
         )
         self.down_layer_3 = nn.Sequential(
             nn.BatchNorm2d (depth[1]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[1], depth[2], (3,3), stride=2, padding=(1,1), padding_mode="reflect"),
             nn.BatchNorm2d (depth[2]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[2], depth[2], (3,3), padding=(1,1), padding_mode="reflect")
         )
         self.down_layer_4 = nn.Sequential(
             nn.BatchNorm2d (depth[2]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[2], depth[3], (3,3), stride=2, padding=(1,1), padding_mode="reflect"),
             nn.BatchNorm2d (depth[3]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[3], depth[3], (3,3), padding=(1,1), padding_mode="reflect")
         )
         self.up_layer_1 = nn.Sequential(
             nn.BatchNorm2d (depth[3]+depth[2]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[3]+depth[2], depth[2], (3,3), padding=(1,1), padding_mode="reflect"),
             nn.BatchNorm2d (depth[2]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[2], depth[2], (3,3), padding=(1,1), padding_mode="reflect")
         )
         self.up_layer_2 = nn.Sequential(
             nn.BatchNorm2d (depth[2]+depth[1]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[2]+depth[1], depth[1], (3,3), padding=(1,1), padding_mode="reflect"),
             nn.BatchNorm2d (depth[1]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[1], depth[1], (3,3), padding=(1,1), padding_mode="reflect")
         )
         self.up_layer_3 = nn.Sequential(
             nn.BatchNorm2d (depth[1]+depth[0]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[1]+depth[0], depth[0], (3,3), padding=(1,1), padding_mode="reflect"),
             nn.BatchNorm2d (depth[0]),
-            nn.ReLU (),
+            nn.ELU (),
             Conv2d (depth[0], depth[0], (3,3), padding=(1,1), padding_mode="reflect")
         )
         self.final_conv = Conv2d (depth[0], out_channels, (1,1))
-        #self.up_conv1 = Upsample(size=(1,depth[3],73,73), mode='nearest')
-        #self.up_conv2 = Upsample(size=(1,depth[2],146,146), mode='nearest')
-        #self.up_conv3 = Upsample(size=(1,depth[1],292,292), mode='nearest')
-
-
 
 
     def forward (self, input_data):
@@ -112,8 +125,9 @@ class ResUnet(nn.Module):
         up_layer_3 = torch.add (self.res_7 (up_sampled_3), self.up_layer_3 (up_sampled_3))
 
         #final_conv = torch.sigmoid (self.final_conv (up_layer_3))
+        final_conv = torch.clamp (torch.add (input_data, self.final_conv (up_layer_3)), 0, 1)
 
-        final_conv = torch.clamp (self.final_conv (up_layer_3), 0, 1)
+        #final_conv = torch.clamp (self.final_conv (up_layer_3), 0, 1)
 
         #final_conv = self.final_conv (up_layer_3)
         return final_conv
@@ -128,4 +142,4 @@ class ResUnet(nn.Module):
         torch.save({
             "state_dict": self.state_dict(),
             "args_dict": args_dict
-        }, filename) #model.state_dict(), "temp_best_model.pth")
+        }, filename)
