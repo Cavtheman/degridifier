@@ -47,11 +47,6 @@ class Unet(nn.Module):
 
         self.convu3_2 = Conv2d (depth[0], 3, (1,1), padding_mode="reflect")
 
-        # Finding the image
-        #self.remover_conv1 = Conv2d (in_channels+1, in_channels+1, (3,3), padding=(2,2), padding_mode="reflect", dilation=2)
-        self.remover_conv1 = Conv2d (in_channels+1, in_channels+1, (3,3), padding=(1,1), padding_mode="reflect", dilation=1)
-        self.remover_conv2 = Conv2d (in_channels+1, out_channels, (3,3), padding=(1,1), padding_mode="reflect")
-
 
         self.up_samp1 = Upsample (scale_factor=(2,2), mode='bilinear', align_corners=False)
 
@@ -108,26 +103,10 @@ class Unet(nn.Module):
         conved7_1 = F.elu (self.convu3_1 (conved7_0))
 
         # Final horizontal convolution
-        #conved8 = F.elu (torch.tanh(self.convu3_2(conved7_1)))
-        #conved9 = F.elu (torch.add (input_data,
+        conved8 = torch.sigmoid (self.convu3_2 (conved7_1))
+        #conved8 = torch.add (input_data, self.convu3_2(conved7_1))
         #conved8 = torch.add (input_data, torch.tanh(self.convu3_2(conved7_1)))
-        #conved8 = F.elu (torch.add (input_data, torch.tanh(self.convu3_2(conved7_1))))
-
-        conved8 = F.elu (torch.add (input_data, torch.tanh(self.convu3_2(conved7_1))))
-        clamped = torch.clamp (conved8, 0, 1)
-
-        #conved8 = torch.sigmoid (self.convu3_2 (conved7_1))
-        #conved8 = self.convu3_2 (conved7_1)
-
-        #conved8 = torch.sigmoid (torch.add (input_data, torch.tanh(self.convu3_2(conved7_1))))
-
-        # Remover convolutions
-        #with_input = torch.cat ((input_data, conved8), dim=1)
-        #print ("with_input", with_input.size())
-        #conved9 = F.selu (self.remover_conv1 (with_input))
-        #print ("first", conved9.size())
-        #conved10 = torch.sigmoid (self.remover_conv2 (conved9))
-        #print ("second", conved10.size())
+        #conved8 = torch.clamp (conved8, 0, 1)
 
         return conved8
 

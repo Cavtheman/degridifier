@@ -1,14 +1,56 @@
 import torch
 import torch.nn as nn
 from torch.nn import Conv2d
+import torch.nn.functional as F
 
 class Flatten(torch.nn.Module):
     def forward(self, x):
         return x.view(x.size()[0], -1)
 
 class Discriminator(nn.Module):
-    def __init__(self, in_channels, depth=[4,8,16,32,64], dropout=0.5):
+    def __init__(self, in_channels, depth=[8,16,32,64]):
         super(Discriminator, self).__init__()
+        self.in_channels = in_channels
+        self.depth = depth
+
+        self.main = nn.Sequential(
+            nn.Conv2d (in_channels, depth[0], 4, stride=2, padding=1),
+            nn.ELU (),
+
+            nn.Conv2d (depth[0], depth[1], 4, stride=2, padding=1),
+            nn.InstanceNorm2d (depth[1]),
+            nn.ELU (),
+
+            nn.Conv2d (depth[1], depth[2], 4, stride=2, padding=1),
+            nn.InstanceNorm2d (depth[2]),
+            nn.ELU (),
+
+            nn.Conv2d (depth[2], depth[3], 4, padding=1),
+            nn.InstanceNorm2d (depth[3]),
+            nn.ELU (),
+
+            nn.Conv2d (depth[3], 1, 4, padding=1),
+        )
+
+    def forward (self, input_data):
+        out = self.main (input_data)
+        out = F.avg_pool2d (out, out.size()[2:])
+        out = torch.flatten (out, 1)
+        return torch.sigmoid(out)
+
+    def save(self, filename):
+        args_dict = {
+            "in_channels": self.in_channels,
+            "depth": self.depth
+        }
+        torch.save({
+            "state_dict": self.state_dict(),
+            "args_dict": args_dict
+        }, filename)
+
+class Discriminator1(nn.Module):
+    def __init__(self, in_channels, depth=[4,8,16,32,64], dropout=0.5):
+        super(Discriminator1, self).__init__()
         self.in_channels = in_channels
         self.depth = depth
         self.dropout = dropout

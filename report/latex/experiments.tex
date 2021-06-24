@@ -1,0 +1,46 @@
+In this section I will describe both the experiments performed with the different models, and the parameters given to each model. Each model has been trained for only 30 epochs, and while there is still improvement from training some of them longer, it is marginal compared to the time constraints.
+\subsection{U-net}
+The U-net architecture does not have many hyperparameters to tune, but all models trained here are given the parameters listed below, unless otherwise specified in the experiment. By depth, I mean how many ``color'' channels are used to represent the data. Since the input and outputs are rgb images, they have depths of 3. Each successive number in the sequence represent going ``down'' a layer in the model.
+\begin{itemize}
+\item Depth: 8, 16, 32, 64
+\item Dropout: 0.5
+\item Training time: 30 epochs
+\item Optimiser: Adam
+\item Learning rate: 1e-4
+\end{itemize}
+
+\subsubsection{Final layer variants}
+For this experiment there are three variants I would like to explore, to see which performs better. By final layer, I refer to the convolutions following the final upsamling and concatenation in Figure \ref{img:architectures}, right. The first of these experiments is the setup shown in the figure, as a baseline. The second experiment adds a single residual connection directly from the input, and is added onto the output of the final convolution pixelwise. The third experiment does the same, but adds a $tanh$ activation function to the final convolution before pixelwise addition. In both experiments the final output is clamped between $0$ and $1$.
+
+\subsubsection{L1 vs L2 loss}
+While most papers doing this kind of image work use L1 loss, I hypothesise that using L2 (MSE) loss will work better for this task. The reasoning for this is that L2 loss is more sensitive to outliers, given the quadratic nature of it. This should help since outputting an unchanged input is easy, and will not give high error values using L1. One potential problem with L2 loss is that it tends to blur the output, which is of course undesirable.
+
+\subsection{ResUnet}
+Like the U-net, there are not too many hyperparameters to vary between experiments. All ResUnet model, unless otherwise specified are trained with the following hyperparameters.
+\begin{itemize}
+\item Depth: 8, 16, 32, 64
+\item Dropout: 0
+\item Training time: 30 epochs
+\item Optimiser: Adam
+\item Learning rate: 1e-4
+\end{itemize}
+
+\subsubsection{Final layer variants}
+This experiment can be replicated exactly from the corresponding U-net experiment, and as such I will test for the exact same things.
+\subsubsection{L1 vs L2 loss}
+In much the same way as the U-net, L1 and L2 loss can different effects on the outputs of a model, and thus I will test for it here as well.
+\subsubsection{Dropout}
+In \cite{resunet} they make no mention of using dropout layers in the model despite them being generally useful. As such, I would like to test whether it makes a difference to the performance of these models.
+
+
+% INSERT BEST RESUNET CONFIGURATION HERE
+\subsection{CycleGAN INSERT BEST RESUNET CONFIGURATION HERE}
+The cycleGAN experiments are all using the best performing ResUnet configuration as the nogrid generator, with the same hyperparameters as described in that section. However, due to hardware constraints the grid generator's depth has had to be reduced to $4,8,16,32$.
+In addition, cycleGANs have some more parameters that can be tweaked. While not traditionally something that makes sense to adjust, scaling the different loss values can have significant effects.
+
+\subsubsection{Pretrained generator vs not}
+Because I already have a trained ResUnet model, I thought it would be interesting to see the performance difference, if any, between a cycleGAN where the nogrid generator is already pretrained.
+\subsubsection{Real data vs artificial}
+Both the U-net and ResUnet experiments thus far have been using artificial data, where the grids have been artificially overlaid by me, to make the task easier. This experiment is to see how well the model can do on real gridded data, pulled from the internet.
+\subsubsection{Scaling loss}
+Scaling the loss values is an interesting experiment because there are no real guidelines regarding how they are to be determined. The $\lambda$ value mentioned in Equations \ref{eq:idlambda}, \ref{eq:ganlambda} and \ref{eq:cyclambda} is what this experiment will be adjusting to see how the model performs. Due to time constraints, only a few configurations of this can be tested.

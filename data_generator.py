@@ -125,7 +125,8 @@ class ArtificialDataset(data.Dataset):
         # Augment the data and labels randomly using given arguments
         data, labels = self.__augment_data__(temp, self.grid_size, self.grid_intensity, self.grid_offset_x, self.grid_offset_y, self.crop, self.hflip, self.vflip, self.angle, self.shear, self.brightness, self.pad, self.contrast, self.use_channel)
         temp.close()
-        return data, labels
+        #return data, labels
+        return { "grid" : data, "nogrid" : labels }
 
 
 
@@ -156,9 +157,7 @@ class CombinedDataset(data.Dataset):
             torch.cuda.manual_seed(seed)
 
         self.grid_paths = self.__get_all_files__(grid_path)
-        random.shuffle (self.grid_paths)
         self.nogrid_paths = self.__get_all_files__(nogrid_path)
-        random.shuffle (self.nogrid_paths)
 
         #self.data_paths = [ elem[1] for elem in combined_paths ]
 
@@ -172,6 +171,7 @@ class CombinedDataset(data.Dataset):
         self.contrast = contrast
         self.use_channel = use_channel
         self.seed = seed
+        self.max_imgs = max_imgs
 
     def __augment_data__(self, data):
 
@@ -228,7 +228,7 @@ class CombinedDataset(data.Dataset):
 
 
     def __len__(self):
-        return min (len(self.grid_paths), len(self.nogrid_paths))
+        return min (len(self.grid_paths), len(self.nogrid_paths), self.max_imgs)
 
     def __getitem__(self, index):
         temp_grid = Image.open (self.grid_paths[index]).convert("RGB")
@@ -242,6 +242,6 @@ class CombinedDataset(data.Dataset):
         #return data.float(), label.float()
         return { "grid" : grid, "nogrid" : nogrid }
 
-no_grid = "data/train/nogrid"
-art_no_grid = "data/artificial_val"
-test = CombinedDataset(10, no_grid, art_no_grid)
+#no_grid = "data/train/nogrid"
+#art_no_grid = "data/artificial_val"
+#test = CombinedDataset(10, no_grid, art_no_grid)

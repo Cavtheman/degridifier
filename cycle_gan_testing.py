@@ -4,7 +4,7 @@ import torch.nn as nn
 from torch.utils import data
 from torchvision.utils import save_image
 
-from data_generator import CombinedDataset
+from data_generator import CombinedDataset, ArtificialDataset
 from resunet import ResUnet
 from discriminator import Discriminator
 
@@ -29,6 +29,11 @@ augments = {"crop" : (400,400),
             "pad" : (0,0,0,0),
             "contrast" : (0.5,1.25)}
 
+artificial_augments = {"grid_size" : (30,90),
+                       "grid_intensity" : (-1,1),
+                       "grid_offset_x" : (0,90),
+                       "grid_offset_y" : (0,90),
+                       "crop" : (400,400)}
 # Loading models
 loaded_params = torch.load("final_grid_gen.pth")
 grid_gen = ResUnet(**loaded_params["args_dict"]).to(processor)
@@ -49,8 +54,8 @@ nogrid_disc.load_state_dict(loaded_params["state_dict"])
 loss_function = nn.MSELoss().to(processor)
 
 # Loading dataset
-#validation_set = ArtificialDataset (max_imgs, nogrid_path, **augments, seed=1337)
-validation_set = CombinedDataset (5000, grid_path, nogrid_path, **augments)
+validation_set = ArtificialDataset (max_imgs, nogrid_path, **artificial_augments, seed=1337)
+#validation_set = CombinedDataset (max_imgs, grid_path, nogrid_path, **augments, seed=1337)
 validation_generator = data.DataLoader (validation_set, batch_size=batch_size, shuffle=False, num_workers=8)
 
 
@@ -96,7 +101,7 @@ for i, batch in enumerate(validation_generator):
     save_image(to_save, "data/artificial_val/{0}.png".format(i))
 
 val_grid_loss = val_grid_loss/len(validation_generator)
-print ("Average loss over validation data:", val_grid_loss)
+print ("Average grid loss over validation data:", val_grid_loss)
 
 val_nogrid_loss = val_nogrid_loss/len(validation_generator)
-print ("Average loss over validation data:", val_nogrid_loss)
+print ("Average nogrid loss over validation data:", val_nogrid_loss)
