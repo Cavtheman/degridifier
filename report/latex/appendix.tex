@@ -1,0 +1,36 @@
+\subsection{``Fixed'' cycleGAN outputs}
+
+\begin{table}[H]
+  \centering
+  \begin{tabular}{|l|l|l|l|l|l|l|}
+    \hline
+                     & 5/1/1  & 1/5/1  & 1/1/5  & 1/5/5  & 5/1/5  & 5/5/1  \\ \hline
+    Nogrid generator &  &  &  &  &  & 0.4246 \\ \hline
+    Grid generator   &  &  &  &  &  & 0.9611 \\ \hline
+  \end{tabular}
+  \caption{Average L1 loss over test set. Numbers stand for scaling factor, using a $\lambda_{ID}/\lambda_{GAN}/\lambda_{cyc}$ format.}\label{fig:cyclegan_fixed_perf}
+\end{table}
+
+\begin{figure}[H]
+  \centering
+  \captionsetup{justification=centering}
+  %\begin{subfigure}[t]{\linewidth}
+  %  \centering
+  %  \caption{5/1/1 and 1/5/1 variants}
+  \includegraphics[width=0.45\linewidth]{../saved/cyclegan/fixed/nogrid_loss_log.png}
+  \includegraphics[width=0.45\linewidth]{../saved/cyclegan/fixed/grid_loss_log.png}
+  %\end{subfigure}
+  \caption{Pairs of nogrid generator and discriminator loss graphs.}\label{image:cyclegan_fixed_loss}
+\end{figure}
+
+\begin{figure}[H]
+  \centering
+  \captionsetup{justification=centering}
+  \includegraphics[width=0.15\linewidth]{../saved/cyclegan/fixed/0.png}
+  \includegraphics[width=0.15\linewidth]{../saved/cyclegan/fixed/1.png}
+  \includegraphics[width=0.15\linewidth]{../saved/cyclegan/fixed/2.png}
+  \includegraphics[width=0.15\linewidth]{../saved/cyclegan/fixed/3.png}
+  \includegraphics[width=0.15\linewidth]{../saved/cyclegan/fixed/4.png}
+  \includegraphics[width=0.15\linewidth]{../saved/cyclegan/fixed/5.png}
+  \caption[center]{Examples of outputs from the ``fixed'' cycleGAN. From top to bottom: Grid image, nogrid generator output, nogrid image, grid generator output.}\label{image:cyclegan_fixed_images}
+\end{figure}

@@ -1,4 +1,4 @@
-In this section I will describe both the experiments performed with the different models, and the parameters given to each model. Each model has been trained for only 30 epochs, and while there is still improvement from training some of them longer, it is marginal compared to the time constraints.
+In this section I will describe both the experiments performed with the different models, and the parameters given to each model. Each model has been trained for only 30 epochs, and while there is still improvement from training several of them for longer, I was unable due to time constraints.
 \subsection{U-net}
 The U-net architecture does not have many hyperparameters to tune, but all models trained here are given the parameters listed below, unless otherwise specified in the experiment. By depth, I mean how many ``color'' channels are used to represent the data. Since the input and outputs are rgb images, they have depths of 3. Each successive number in the sequence represent going ``down'' a layer in the model.
 \begin{itemize}
@@ -10,15 +10,18 @@ The U-net architecture does not have many hyperparameters to tune, but all model
 \end{itemize}
 
 \subsubsection{Final layer variants}
-For this experiment there are three variants I would like to explore, to see which performs better. By final layer, I refer to the convolutions following the final upsamling and concatenation in Figure \ref{img:architectures}, right. The first of these experiments is the setup shown in the figure, as a baseline. The second experiment adds a single residual connection directly from the input, and is added onto the output of the final convolution pixelwise. The third experiment does the same, but adds a $tanh$ activation function to the final convolution before pixelwise addition. In both experiments the final output is clamped between $0$ and $1$.
+For this experiment there are three variants I would like to explore, to see which performs better. By final layer, I refer to the convolutions following the final upsamling and concatenation in Figure \ref{img:architectures}, right. The first of these experiments is the setup shown in the figure, as a baseline. The second experiment adds a single residual connection directly from the input, and is added onto the output of the final convolution pixelwise. The third experiment does the same, but adds a $tanh$ activation function to the final convolution before pixelwise addition. In both experiments the final output is clamped between $0$ and $1$ to prevent overflow pixels.
 
 \subsubsection{L1 vs L2 loss}
 While most papers doing this kind of image work use L1 loss, I hypothesise that using L2 (MSE) loss will work better for this task. The reasoning for this is that L2 loss is more sensitive to outliers, given the quadratic nature of it. This should help since outputting an unchanged input is easy, and will not give high error values using L1. One potential problem with L2 loss is that it tends to blur the output, which is of course undesirable.
 
+\subsubsection{Performance on real data}
+Though the model has been trained solely on artificial data, I will also try to see how well the model generalises to real data. Since there are so many styles of grids and the models only learn my artificial one, I do not expect any good results from this experiment. The model used here will be the ``tanh activation + residual'' variant, trained with L2 loss.
+
 \subsection{ResUnet}
-Like the U-net, there are not too many hyperparameters to vary between experiments. All ResUnet model, unless otherwise specified are trained with the following hyperparameters.
+Like the U-net, there are not too many hyperparameters to vary between experiments. All ResUnet model, unless otherwise specified are trained with the following hyperparameters. The depth has had to be reduced slightly compared to the U-net due to a slightly increased memory footprint.
 \begin{itemize}
-\item Depth: 8, 16, 32, 64
+\item Depth: 6, 12, 24, 48
 \item Dropout: 0
 \item Training time: 30 epochs
 \item Optimiser: Adam
@@ -31,16 +34,18 @@ This experiment can be replicated exactly from the corresponding U-net experimen
 In much the same way as the U-net, L1 and L2 loss can different effects on the outputs of a model, and thus I will test for it here as well.
 \subsubsection{Dropout}
 In \cite{resunet} they make no mention of using dropout layers in the model despite them being generally useful. As such, I would like to test whether it makes a difference to the performance of these models.
-
+\subsubsection{Performance on real data}
+Similar to the U-net I do not expect any good results from this experiment, simply due to the model not having learned the different styles of grids.
 
 % INSERT BEST RESUNET CONFIGURATION HERE
-\subsection{CycleGAN INSERT BEST RESUNET CONFIGURATION HERE}
-The cycleGAN experiments are all using the best performing ResUnet configuration as the nogrid generator, with the same hyperparameters as described in that section. However, due to hardware constraints the grid generator's depth has had to be reduced to $4,8,16,32$.
-In addition, cycleGANs have some more parameters that can be tweaked. While not traditionally something that makes sense to adjust, scaling the different loss values can have significant effects.
+\subsection{CycleGAN}
+The cycleGAN experiments are all using the ``residual + no activation'' ResUnet variant as the generators, with the same hyperparameters as described in that section. In addition, cycleGANs have some more parameters that can be tweaked. While not traditionally something that makes sense to adjust, scaling the different loss values can have significant effects. Because the cycleGAN takes significantly longer to train than the U-net and ResUnet, the cycleGAN variants will only be trained for 10 epochs each. Due to the very large variance in performance as training goes on, I have chosen to utilise early stopping, by saving the model which does best on the validation data. This model is what will be used to evaluate the performance of the cycleGAN models.
 
-\subsubsection{Pretrained generator vs not}
-Because I already have a trained ResUnet model, I thought it would be interesting to see the performance difference, if any, between a cycleGAN where the nogrid generator is already pretrained.
-\subsubsection{Real data vs artificial}
-Both the U-net and ResUnet experiments thus far have been using artificial data, where the grids have been artificially overlaid by me, to make the task easier. This experiment is to see how well the model can do on real gridded data, pulled from the internet.
 \subsubsection{Scaling loss}
 Scaling the loss values is an interesting experiment because there are no real guidelines regarding how they are to be determined. The $\lambda$ value mentioned in Equations \ref{eq:idlambda}, \ref{eq:ganlambda} and \ref{eq:cyclambda} is what this experiment will be adjusting to see how the model performs. Due to time constraints, only a few configurations of this can be tested.
+
+\subsubsection{Pretrained generator vs not}
+I would have performed an experiment where I compared the results of a cycleGAN network that started training with one of the already trained ResUnet networks, but due to the fact that I could not seem to train a reasonable generator at all, I have not performed this experiment. I would hypothesise that if I had performed this experiment, the pretrained generator would converge to a good solution slightly quicker, since it already has some information regarding how to remove the grids. Though I do not think that the final results would differ significantly.
+
+\subsubsection{Performance on real data}
+This is another experiment I would have performed if I had been able to train a cycleGAN model that could at least perform decently. If the models actually worked, I would expect that the cycleGAN could perform slightly better than the plain ResUnet generator, since it has the opportunity to learn from real data in a way that the ResUnet does not, and also has a more general metric for how well it removes grids in the discriminator.

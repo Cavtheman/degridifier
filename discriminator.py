@@ -49,7 +49,7 @@ class Discriminator(nn.Module):
         }, filename)
 
 class Discriminator1(nn.Module):
-    def __init__(self, in_channels, depth=[4,8,16,32,64], dropout=0.5):
+    def __init__(self, in_channels, depth=[8,16,32,64], dropout=0.5):
         super(Discriminator1, self).__init__()
         self.in_channels = in_channels
         self.depth = depth

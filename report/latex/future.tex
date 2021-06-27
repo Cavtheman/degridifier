@@ -1,3 +1,6 @@
+\subsection{More experimentation with a cycleGAN}
+The cycleGAN variants did not perform well at all, though the ``fixed'' version shown in the appendix definitely has more potential than the ones I have performed with. Trying to fix some of the potential issues discussed about this could potentially lead to a model that performs better.
+
 \subsection{Supervised U-net/ResUnet on real data}
 While finding paired versions of images in this specific dataset is quite difficult, it is not impossible. There are many of the people who make these images who provide both gridded and ungridded versions of their images, primarily through sites like Patreon. The problem with using this paired data is that many of them are in a style that is very different from more traditional sources, such as those from published books. However, these more traditional sources are (in my view at least) falling slightly out of use, relatively. Thus, the effort may be worth it.
 
@@ -7,4 +10,4 @@ The idea here is to train a U-net in a more traditional way, to simply recognise
 I steered away from this option for the project initially because it is very task-specific and will likely not be very useful for other tasks.
 
 \subsection{More general artifact removal}
-The methods explored here should also work on other datasets with artifacts, both regular and irregular. Though one can not not for certain unless it is tried.
+The methods explored here should also work on other datasets with artifacts, both regular and irregular. Though one can not know for certain unless it is tried.

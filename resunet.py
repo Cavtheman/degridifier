@@ -8,7 +8,7 @@ from torch.nn import MaxPool2d
 import torch.nn.functional as F
 
 class ResUnet(nn.Module):
-    def __init__(self, in_channels, out_channels, depth=[4,8,16,32,64], dropout=0):
+    def __init__(self, in_channels, out_channels, depth=[6,12,24,48,64], dropout=0):
         super(ResUnet, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
@@ -120,9 +120,11 @@ class ResUnet(nn.Module):
         up_layer_1 = torch.add (self.res_5 (up_sampled_1), self.up_layer_1 (up_sampled_1))
 
         up_sampled_2 = torch.cat ((conv_layer_2, self.up_samp1 (up_layer_1)), dim=1)
+        up_sampled_2 = self.drop (up_sampled_2)
         up_layer_2 = torch.add (self.res_6 (up_sampled_2), self.up_layer_2 (up_sampled_2))
 
         up_sampled_3 = torch.cat ((conv_layer_1, self.up_samp1 (up_layer_2)), dim=1)
+        up_sampled_3 = self.drop (up_sampled_3)
         up_layer_3 = torch.add (self.res_7 (up_sampled_3), self.up_layer_3 (up_sampled_3))
 
         #final_conv = torch.sigmoid (self.final_conv (up_layer_3))

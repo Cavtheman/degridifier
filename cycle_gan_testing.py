@@ -11,8 +11,8 @@ from discriminator import Discriminator
 
 # Setting parameters and stuff
 #val_path = "data/val/grid/"
-nogrid_path = "data/val/nogrid/"
-grid_path = "data/val/grid/"
+nogrid_path = "data/test/nogrid/"
+grid_path = "data/test/grid/"
 
 use_cuda = torch.cuda.is_available()
 print("Using GPU:", use_cuda)
@@ -35,23 +35,27 @@ artificial_augments = {"grid_size" : (30,90),
                        "grid_offset_y" : (0,90),
                        "crop" : (400,400)}
 # Loading models
+#loaded_params = torch.load("saved/cyclegan/fixed/final_grid_gen.pth")
 loaded_params = torch.load("final_grid_gen.pth")
 grid_gen = ResUnet(**loaded_params["args_dict"]).to(processor)
 grid_gen.load_state_dict(loaded_params["state_dict"])
 
+#loaded_params = torch.load("saved/cyclegan/fixed/final_nogrid_gen.pth")
 loaded_params = torch.load("final_nogrid_gen.pth")
 nogrid_gen = ResUnet(**loaded_params["args_dict"]).to(processor)
 nogrid_gen.load_state_dict(loaded_params["state_dict"])
 
+#loaded_params = torch.load("saved/cyclegan/fixed/final_grid_disc.pth")
 loaded_params = torch.load("final_grid_disc.pth")
 grid_disc = Discriminator(**loaded_params["args_dict"]).to(processor)
 grid_disc.load_state_dict(loaded_params["state_dict"])
 
+#loaded_params = torch.load("saved/cyclegan/fixed/final_nogrid_disc.pth")
 loaded_params = torch.load("final_nogrid_disc.pth")
 nogrid_disc = Discriminator(**loaded_params["args_dict"]).to(processor)
 nogrid_disc.load_state_dict(loaded_params["state_dict"])
 
-loss_function = nn.MSELoss().to(processor)
+loss_function = nn.L1Loss().to(processor)
 
 # Loading dataset
 validation_set = ArtificialDataset (max_imgs, nogrid_path, **artificial_augments, seed=1337)

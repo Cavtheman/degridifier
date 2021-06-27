@@ -103,10 +103,10 @@ class Unet(nn.Module):
         conved7_1 = F.elu (self.convu3_1 (conved7_0))
 
         # Final horizontal convolution
-        conved8 = torch.sigmoid (self.convu3_2 (conved7_1))
-        #conved8 = torch.add (input_data, self.convu3_2(conved7_1))
+        #conved8 = torch.sigmoid (self.convu3_2 (conved7_1))
+        conved8 = torch.add (input_data, self.convu3_2(conved7_1))
         #conved8 = torch.add (input_data, torch.tanh(self.convu3_2(conved7_1)))
-        #conved8 = torch.clamp (conved8, 0, 1)
+        conved8 = torch.clamp (conved8, 0, 1)
 
         return conved8
 
